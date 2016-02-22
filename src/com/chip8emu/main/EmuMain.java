@@ -19,6 +19,7 @@ public class EmuMain extends BasicGame {
 			appGC = new AppGameContainer(new EmuMain("Chip-8 Emulator"));
 			appGC.setDisplayMode(CHIP8_DISPLAY_SCALE * 64, CHIP8_DISPLAY_SCALE * 32, false);
 			appGC.setAlwaysRender(true);
+			appGC.setShowFPS(false);
 			appGC.start();
 		} catch (SlickException e) {
 			e.printStackTrace();

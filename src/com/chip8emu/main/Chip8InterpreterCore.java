@@ -10,11 +10,11 @@ public class Chip8InterpreterCore {
 	private static final String ERROR_RCA_1802_UNSUPPORTED = "RCA 1802 Programs not supported ATM";
 	private static final String ERROR_UNKNOWN_EXCEPTION = "Unknown Exception fired";
 
-	private static final boolean DEBUG_OUTPUT = true;
+	private static final boolean DEBUG_OUTPUT = false;
 
 	// Chip-8 specs listed @ https://en.wikipedia.org/wiki/CHIP-8
 	private static final int CHIP8_PROGLOAD_ADDR = 0x200;
-	private static final int CHIP8_CLOCK_DELAY_TIME = 0; // Time to delay
+	private static final int CHIP8_CLOCK_DELAY_TIME = 2; // Time to delay
 															// between each
 															// cycle in
 															// milliseconds
@@ -107,6 +107,7 @@ public class Chip8InterpreterCore {
 	}
 
 	private void clear() {
+		vram = clearMemory(vram);
 		ram = clearMemory(ram);
 		vRegisters = clearMemory(vRegisters);
 		stack = clearMemory(stack);
@@ -294,7 +295,7 @@ public class Chip8InterpreterCore {
 					try {
 						Thread.sleep(CHIP8_CLOCK_DELAY_TIME);
 					} catch (InterruptedException e1) {
-						exit = Thread.interrupted() | exit;
+						exit = true;
 						continue;
 					}
 
@@ -703,9 +704,9 @@ public class Chip8InterpreterCore {
 									// hexadecimal) are represented by a 4x5
 									// font.
 									if (DEBUG_OUTPUT)
-										System.out.println("Sets I(" + (int)addrRegister + ") to controlLow * 5: "
-												+ (((int)vRegisters[controlLow] & 0xFF) * 5));
-									addrRegister = ((int)vRegisters[controlLow] & 0xFF) * 5 - 1;
+										System.out.println("Sets I(" + (int) addrRegister + ") to controlLow * 5: "
+												+ (((int) vRegisters[controlLow] & 0xFF) * 5));
+									addrRegister = ((int) vRegisters[controlLow] & 0xFF) * 5 - 1;
 								} else
 									fail(ERROR_INVALID_INSTRUCTION);
 								break;
