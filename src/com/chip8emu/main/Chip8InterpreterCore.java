@@ -10,11 +10,11 @@ public class Chip8InterpreterCore {
 	private static final String ERROR_RCA_1802_UNSUPPORTED = "RCA 1802 Programs not supported ATM";
 	private static final String ERROR_UNKNOWN_EXCEPTION = "Unknown Exception fired";
 
-	private static final boolean DEBUG_OUTPUT = false;
+	private static final boolean DEBUG_OUTPUT = true;
 
 	// Chip-8 specs listed @ https://en.wikipedia.org/wiki/CHIP-8
 	private static final int CHIP8_PROGLOAD_ADDR = 0x200;
-	private static final int CHIP8_CLOCK_DELAY_TIME = 5; // Time to delay
+	private static final int CHIP8_CLOCK_DELAY_TIME = 0; // Time to delay
 															// between each
 															// cycle in
 															// milliseconds
@@ -142,7 +142,14 @@ public class Chip8InterpreterCore {
 	}
 
 	private void fail(String error) {
-		System.err.println(error);
+		System.err.println("\n" + error);
+		System.out.flush();
+		System.err.flush();
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		dump();
 		clear();
 		System.exit(-1);
@@ -240,11 +247,14 @@ public class Chip8InterpreterCore {
 
 	public void dump() {
 		// Print system state
-		System.out.println("V_REGISTERS:");
-		dumpMemory(vRegisters);
-		System.out.println("\n-------------------------------------------------\n");
+		System.out.println("-------------------------------------------------\n");
+		debugDump();
 		System.out.println("RAM:");
 		dumpMemory(ram);
+		System.out.println("\n-------------------------------------------------\n");
+	}
+
+	public void dumpScreen() {
 		System.out.println("\n-------------------------------------------------\n");
 		System.out.println("VRAM:");
 		dumpMemory(vram);
@@ -298,7 +308,7 @@ public class Chip8InterpreterCore {
 					byte paramLow = (byte) (opcode[1] & 0x0F);
 
 					if (DEBUG_OUTPUT) {
-						System.out.print("\n\n\n\n\n");
+						System.out.print("\n\n\n");
 						dumpMemory(new byte[] { controlHigh, controlLow, paramHigh, paramLow });
 						System.out.println("");
 					}
@@ -567,12 +577,12 @@ public class Chip8InterpreterCore {
 									// is
 									// greater than 1, second line continues at
 									// position VX, VY+1, and so on.
-							if (DEBUG_OUTPUT)
-								System.out.println("DRAW!!!");
-
 							synchronized (vram) {
 								int x = vRegisters[controlLow];
 								int y = vRegisters[paramHigh];
+
+								if (DEBUG_OUTPUT)
+									System.out.println("Drawing sprite @ (" + x + ", " + y + ")");
 
 								vRegisters[0xF] = 0;
 
@@ -693,9 +703,9 @@ public class Chip8InterpreterCore {
 									// hexadecimal) are represented by a 4x5
 									// font.
 									if (DEBUG_OUTPUT)
-										System.out.println("Sets I(" + addrRegister + ") to controlLow * 5: "
-												+ (vRegisters[controlLow] * 5));
-									addrRegister = vRegisters[controlLow] * 5 - 1;
+										System.out.println("Sets I(" + (int)addrRegister + ") to controlLow * 5: "
+												+ (((int)vRegisters[controlLow] & 0xFF) * 5));
+									addrRegister = ((int)vRegisters[controlLow] & 0xFF) * 5 - 1;
 								} else
 									fail(ERROR_INVALID_INSTRUCTION);
 								break;
@@ -753,8 +763,15 @@ public class Chip8InterpreterCore {
 							break;
 						}
 					} catch (Exception e) {
-						fail(ERROR_UNKNOWN_EXCEPTION);
 						e.printStackTrace();
+						System.out.flush();
+						System.err.flush();
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e1) {
+							e1.printStackTrace();
+						}
+						fail(ERROR_UNKNOWN_EXCEPTION);
 					}
 
 					// Should we exit?
