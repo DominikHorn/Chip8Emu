@@ -10,14 +10,15 @@ public class Chip8InterpreterCore {
 	private static final String ERROR_RCA_1802_UNSUPPORTED = "RCA 1802 Programs not supported ATM";
 	private static final String ERROR_UNKNOWN_EXCEPTION = "Unknown Exception fired";
 
+	// Enables Debug output (CHIP-8 Stack trace etc)
 	private static final boolean DEBUG_OUTPUT = false;
 
 	// Chip-8 specs listed @ https://en.wikipedia.org/wiki/CHIP-8
 	private static final int CHIP8_PROGLOAD_ADDR = 0x200;
-	private static final int CHIP8_CLOCK_DELAY_TIME = 2; // Time to delay
-															// between each
-															// cycle in
-															// milliseconds
+
+	// Time to delay between each cycle in milliseconds
+	public int CHIP8_CLOCK_DELAY_TIME = 17;
+
 	// @formatter:off
 	private static final byte[] CHIP8_FONT_DATA = new byte[]
 				   {(byte) 0xF0, (byte) 0x90, (byte) 0x90, (byte) 0x90, (byte)0xF0,	// 0
@@ -615,7 +616,11 @@ public class Chip8InterpreterCore {
 												}
 											}
 										} catch (Exception e) {
-											System.err.println("EXCEPTION");
+											e.printStackTrace();
+											System.out.flush();
+											System.err.flush();
+											Thread.sleep(100);
+											fail(ERROR_UNKNOWN_EXCEPTION);
 										}
 									}
 								}

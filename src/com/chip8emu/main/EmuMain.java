@@ -32,6 +32,10 @@ public class EmuMain extends BasicGame {
 	private Map<Integer, Integer> acceptedKeyMapping;
 	private byte[] vram_buffer;
 
+	// Dirty quickm hack
+	private int increaseTimer = -1;
+	private int decreaseTimer = -1;
+
 	public EmuMain(String gameName) {
 		super(gameName);
 
@@ -91,6 +95,21 @@ public class EmuMain extends BasicGame {
 	public void update(GameContainer gc, int delta) throws SlickException {
 		if (interpreter.isProgramLoaded())
 			interpreter.tick();
+
+		if (increaseTimer != -1)
+			increaseTimer++;
+		if (decreaseTimer != -1)
+			decreaseTimer++;
+
+		if (decreaseTimer % 100 == 0) {
+			interpreter.CHIP8_CLOCK_DELAY_TIME++;
+			decreaseTimer = 0;
+		}
+		if (increaseTimer % 100 == 0) {
+			interpreter.CHIP8_CLOCK_DELAY_TIME = interpreter.CHIP8_CLOCK_DELAY_TIME >= 1
+					? interpreter.CHIP8_CLOCK_DELAY_TIME - 1 : 0;
+			increaseTimer = 0;
+		}
 	}
 
 	@Override
@@ -100,12 +119,27 @@ public class EmuMain extends BasicGame {
 
 		if (key == Input.KEY_F5)
 			programChange();
+
+		if (c == '+') {
+			increaseTimer = 0;
+			interpreter.CHIP8_CLOCK_DELAY_TIME = interpreter.CHIP8_CLOCK_DELAY_TIME >= 1
+					? interpreter.CHIP8_CLOCK_DELAY_TIME - 1 : 0;
+		}
+		if (c == '-') {
+			decreaseTimer = 0;
+			interpreter.CHIP8_CLOCK_DELAY_TIME++;
+		}
 	}
 
 	@Override
 	public void keyReleased(int key, char c) {
 		if (acceptedKeyMapping.containsKey(key))
 			interpreter.inputReleased(acceptedKeyMapping.get(key));
+
+		if (c == '+')
+			increaseTimer = -1;
+		if (c == '-')
+			decreaseTimer = -1;
 	}
 
 	private void programChange() {
