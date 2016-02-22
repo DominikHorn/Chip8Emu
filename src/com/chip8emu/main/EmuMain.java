@@ -18,6 +18,7 @@ public class EmuMain extends BasicGame {
 			AppGameContainer appGC;
 			appGC = new AppGameContainer(new EmuMain("Chip-8 Emulator"));
 			appGC.setDisplayMode(CHIP8_DISPLAY_SCALE * 64, CHIP8_DISPLAY_SCALE * 32, false);
+			appGC.setAlwaysRender(true);
 			appGC.start();
 		} catch (SlickException e) {
 			e.printStackTrace();
@@ -28,6 +29,7 @@ public class EmuMain extends BasicGame {
 
 	private Chip8InterpreterCore interpreter;
 	private Map<Integer, Integer> acceptedKeyMapping;
+	private byte[] vram_buffer;
 
 	public EmuMain(String gameName) {
 		super(gameName);
@@ -56,20 +58,23 @@ public class EmuMain extends BasicGame {
 
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		// Retrive VRAM
-		byte[] vram = interpreter.getVRAM();
-		synchronized (vram) {
-			// for each bit
-			for (int y = 0; y < 32; y++) {
-				for (int x = 0; x < 64; x++) {
-					if (vram[x + y * 64] != 0) {
-						g.fillRect(x * CHIP8_DISPLAY_SCALE, y * CHIP8_DISPLAY_SCALE, CHIP8_DISPLAY_SCALE,
-								CHIP8_DISPLAY_SCALE);
-					}
+		// Retrieve new VRAM buffer only when interpreter has drawn
+		if (interpreter.hasDrawn())
+			vram_buffer = interpreter.getVRAM();
 
+		if (vram_buffer != null)
+			synchronized (vram_buffer) {
+				// for each bit
+				for (int y = 0; y < 32; y++) {
+					for (int x = 0; x < 64; x++) {
+						if (vram_buffer[x + y * 64] != 0) {
+							g.fillRect(x * CHIP8_DISPLAY_SCALE, y * CHIP8_DISPLAY_SCALE, CHIP8_DISPLAY_SCALE,
+									CHIP8_DISPLAY_SCALE);
+						}
+
+					}
 				}
 			}
-		}
 
 	}
 
