@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -25,28 +27,79 @@ public class EmuMain extends BasicGame {
 	private final static short CHIP8_DISPLAY_SCALE = 16;
 
 	private Chip8InterpreterCore interpreter;
+	private Map<Integer, Integer> acceptedKeyMapping;
 
 	public EmuMain(String gameName) {
 		super(gameName);
 
 		this.interpreter = new Chip8InterpreterCore();
+		this.acceptedKeyMapping = new HashMap<>();
+
+		// Setup input
+		acceptedKeyMapping.put(Input.KEY_1, 0x0);
+		acceptedKeyMapping.put(Input.KEY_2, 0x1);
+		acceptedKeyMapping.put(Input.KEY_3, 0x2);
+		acceptedKeyMapping.put(Input.KEY_4, 0x3);
+		acceptedKeyMapping.put(Input.KEY_Q, 0x4);
+		acceptedKeyMapping.put(Input.KEY_W, 0x5);
+		acceptedKeyMapping.put(Input.KEY_E, 0x6);
+		acceptedKeyMapping.put(Input.KEY_R, 0x7);
+		acceptedKeyMapping.put(Input.KEY_A, 0x8);
+		acceptedKeyMapping.put(Input.KEY_S, 0x9);
+		acceptedKeyMapping.put(Input.KEY_D, 0xA);
+		acceptedKeyMapping.put(Input.KEY_F, 0xB);
+		acceptedKeyMapping.put(Input.KEY_Y, 0xC);
+		acceptedKeyMapping.put(Input.KEY_X, 0xD);
+		acceptedKeyMapping.put(Input.KEY_C, 0xE);
+		acceptedKeyMapping.put(Input.KEY_V, 0xF);
 	}
 
 	@Override
-	public void render(GameContainer arg0, Graphics arg1) throws SlickException {
-		// TODO Auto-generated method stub
+	public void render(GameContainer gc, Graphics g) throws SlickException {
+		// Retrive VRAM
+		byte[] vram = interpreter.getVRAM();
+		synchronized (vram) {
+			// for each bit
+			for (int y = 0; y < 32; y++) {
+				for (int x = 0; x < 64; x++) {
+					if (vram[x + y * 64] != 0) {
+						g.fillRect(x * CHIP8_DISPLAY_SCALE, y * CHIP8_DISPLAY_SCALE, CHIP8_DISPLAY_SCALE,
+								CHIP8_DISPLAY_SCALE);
+					}
+
+				}
+			}
+		}
 
 	}
 
 	@Override
-	public void init(GameContainer arg0) throws SlickException {
+	public void init(GameContainer gc) throws SlickException {
 		programChange();
+
+		// Setup input listening
+		gc.getInput().addKeyListener(this);
 	}
 
 	@Override
-	public void update(GameContainer arg0, int arg1) throws SlickException {
+	public void update(GameContainer gc, int delta) throws SlickException {
 		if (interpreter.isProgramLoaded())
 			interpreter.tick();
+	}
+
+	@Override
+	public void keyPressed(int key, char c) {
+		if (acceptedKeyMapping.containsKey(key))
+			interpreter.inputPressed(acceptedKeyMapping.get(key));
+
+		if (key == Input.KEY_F5)
+			programChange();
+	}
+
+	@Override
+	public void keyReleased(int key, char c) {
+		if (acceptedKeyMapping.containsKey(key))
+			interpreter.inputReleased(acceptedKeyMapping.get(key));
 	}
 
 	private void programChange() {
