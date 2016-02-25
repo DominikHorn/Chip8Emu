@@ -160,7 +160,7 @@ public class EmuMain extends BasicGame {
 
 	private boolean loadProgram() throws IOException {
 		final JFileChooser fc = new JFileChooser();
-		fc.setCurrentDirectory(new File("D:\\Programming\\Eclipse\\Emulator\\Chip-8 Pack\\"));
+		fc.setCurrentDirectory(new File("S:\\eclipse\\workspace-github-emu\\Chip-8 Pack"));
 		fc.setFileFilter(new FileNameExtensionFilter("Chip-8 ROM", "ch8"));
 		if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 			return interpreter.loadCode(Files.readAllBytes(Paths.get(fc.getSelectedFile().getAbsolutePath())));
